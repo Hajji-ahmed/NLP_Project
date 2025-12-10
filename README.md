@@ -1,12 +1,12 @@
-# 🚀 Déploiement de LLM avec DistilGPT-2, FastAPI et Gradio
+# 🚀 Déploiement de LLM avec Qwen2.5-0.5B, FastAPI et Gradio
 
-Projet complet de déploiement d'un modèle de langage (LLM) open-source léger avec API et interface web.
+Projet complet de déploiement d'un modèle de langage (LLM) open-source avec API et interface web utilisant le modèle **Qwen2.5-0.5B-Instruct** d'Alibaba Cloud.
 
 ## 📁 Structure du projet
 
 ```
-llm_deploy/
-│── model/            # Modèle DistilGPT-2 téléchargé ici
+NLP_Project/
+│── model/            # Modèle Qwen2.5-0.5B-Instruct téléchargé ici
 │── api/
 │   └── main.py       # API FastAPI
 │── web/
@@ -20,19 +20,23 @@ llm_deploy/
 └── README.md
 ```
 
+## 📝 À propos du modèle
+
+**Qwen2.5-0.5B-Instruct** est un modèle de langage compact (500M paramètres) développé par Alibaba Cloud, optimisé pour les tâches d'instruction et de conversation. Ce modèle offre un excellent compromis entre performance et légèreté.
+
 ## ✅ Étape 1 — Installation des dépendances
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## ✅ Étape 2 — Télécharger le modèle DistilGPT-2
+## ✅ Étape 2 — Télécharger le modèle Qwen2.5-0.5B-Instruct
 
 ```bash
 python download_model.py
 ```
 
-Cette commande télécharge automatiquement le modèle DistilGPT-2 et le sauvegarde dans le dossier `model/`.
+Cette commande télécharge automatiquement le modèle Qwen2.5-0.5B-Instruct depuis Hugging Face et le sauvegarde dans le dossier `model/`.
 
 ## ✅ Étape 3 — Lancer l'API FastAPI
 
@@ -89,14 +93,22 @@ Exemple de log :
 
 ## 🧠 Résultat final
 
-| Partie                    | Statut |
-|---------------------------|--------|
-| Charger DistilGPT-2       | ✔️     |
-| Créer API FastAPI         | ✔️     |
-| Endpoint /generate        | ✔️     |
-| Interface web Gradio      | ✔️     |
-| Test concurrent & latence | ✔️     |
-| Logging complet           | ✔️     |
+| Partie                        | Statut |
+|-------------------------------|--------|
+| Charger Qwen2.5-0.5B-Instruct | ✔️     |
+| Créer API FastAPI             | ✔️     |
+| Endpoint /generate            | ✔️     |
+| Interface web Gradio          | ✔️     |
+| Test concurrent & latence     | ✔️     |
+| Logging complet               | ✔️     |
+
+## 📊 Caractéristiques du modèle
+
+- **Modèle** : Qwen2.5-0.5B-Instruct
+- **Paramètres** : 500M
+- **Développeur** : Alibaba Cloud
+- **Type** : Modèle instruction-tuned pour la génération de texte et la conversation
+- **Avantages** : Compact, rapide, optimisé pour les instructions
 
 ## 📝 Notes
 

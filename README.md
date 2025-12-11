@@ -117,13 +117,3 @@ Exemple de log :
 - **Concurrence** : FastAPI gère naturellement les requêtes asynchrones
 - **Modèle** : DistilGPT-2 est un modèle léger (82M paramètres) parfait pour un workshop
 
-## 🎯 Utilisation pour un workshop
-
-Ce projet est prêt pour une démonstration complète de :
-1. Chargement d'un modèle Hugging Face
-2. Création d'une API REST
-3. Interface utilisateur web
-4. Tests de performance
-5. Monitoring avec logs
-
-Bon workshop ! 🎉

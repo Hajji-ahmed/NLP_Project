@@ -1,6 +1,13 @@
 fastapi
 uvicorn
-transformers
+pydantic
+python-dotenv
+requests
+# Core AI
 torch
-gradio
-httpx
+transformers
+llama-cpp-python
+# Utilities
+nest_asyncio
+pyngrok
+huggingface_hub

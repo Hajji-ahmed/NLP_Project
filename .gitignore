@@ -1,35 +1,31 @@
-# .gitignore pour le projet LLM Deploy
+# --- 🔐 Secrets (CRITICAL) ---
+# Ignores the .env file inside the web folder
+web/.env
+# Ignores any .env file anywhere in the project (safety net)
+.env
+.env.*
 
-# Modèle téléchargé (trop lourd pour Git)
-model/
+# --- 🏋️ Heavy Model Files ---
+# Ignores the entire models folder inside backend
+backend/models/
+# Also ignores any stray GGUF files if you move them
+*.gguf
+*.bin
+*.pth
 
-# Logs
-logs/*.log
-!logs/.gitkeep
+# --- 📝 Logs ---
+# Ignores the specific logs folder and log files
+backend/logs/
+*.log
 
-# Python
+# --- 🐍 Python & Gradio Junk ---
+# Ignore the .gradio folder visible at the top
+.gradio/
+# Ignore Python cache (seen in api/__pycache__)
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
+*.pyc
+
+# --- 🔧 Virtual Environments (Standard practice) ---
+.venv/
 venv/
-ENV/
-.venv
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Distribution / packaging
-dist/
-build/
-*.egg-info/
+env/

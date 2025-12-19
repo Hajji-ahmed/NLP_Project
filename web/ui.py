@@ -1,14 +1,23 @@
 import gradio as gr
 import requests
 
-API_URL = "http://localhost:8000/generate"
+API_URL = "https://ca5e3a41821f.ngrok-free.app/generate"
 
+# In web/ui.py on your laptop
 def ask_model(text):
-    response = requests.post(API_URL, json={"text": text})
-    if response.status_code == 200:
-        return response.json()["response"]
-    else:
-        return "Erreur API"
+    try:
+        # This is REQUIRED for Ngrok
+        headers = {"ngrok-skip-browser-warning": "true"}
+        
+        response = requests.post(API_URL, json={"text": text}, headers=headers)
+        
+        if response.status_code == 200:
+            return response.json()["response"]
+        else:
+            return f"❌ Error {response.status_code}: {response.text}"
+            
+    except Exception as e:
+        return f"❌ Connection Error: {e}"
 
 interface = gr.Interface(
     fn=ask_model,

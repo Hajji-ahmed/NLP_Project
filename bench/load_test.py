@@ -5,6 +5,7 @@ import random
 
 # ⚠️ PASTE YOUR CURRENT KAGGLE URL HERE
 URL = "https://2537e0fdbb8c.ngrok-free.app/generate"
+API_KEY = "groupe3-secret-key-123"
 
 # A list of real prompts to test the model's logic
 PROMPTS = [
@@ -29,7 +30,8 @@ async def chat_interaction(i, client):
     
     try:
         # Headers are required for Ngrok
-        headers = {"ngrok-skip-browser-warning": "true"}
+        headers = {"ngrok-skip-browser-warning": "true",
+             "X-API-Key": API_KEY}
         
         response = await client.post(
             URL, 

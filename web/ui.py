@@ -1,13 +1,20 @@
 import gradio as gr
 import requests
+import os
 
-API_URL = "https://ca5e3a41821f.ngrok-free.app/generate"
+
+
+API_KEY = "groupe3-secret-key-123"
+API_URL = "https://eb0cf532ffbd.ngrok-free.app/generate"
 
 # In web/ui.py on your laptop
 def ask_model(text):
     try:
         # This is REQUIRED for Ngrok
-        headers = {"ngrok-skip-browser-warning": "true"}
+        headers = {
+            "ngrok-skip-browser-warning": "true",
+             "X-API-Key": API_KEY
+            }
         
         response = requests.post(API_URL, json={"text": text}, headers=headers)
         

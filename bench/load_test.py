@@ -4,7 +4,7 @@ import time
 import random
 
 # ⚠️ PASTE YOUR CURRENT KAGGLE URL HERE
-URL = "https://2537e0fdbb8c.ngrok-free.app/generate"
+URL = "https://eb0cf532ffbd.ngrok-free.app/generate"
 API_KEY = "groupe3-secret-key-123"
 
 # A list of real prompts to test the model's logic

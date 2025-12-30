@@ -10,20 +10,20 @@ class LLMEngine:
         base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         model_path = os.path.join(base_path, "models", model_filename)
 
-        print(f"🔄 Loading model from: {model_path}...", flush=True)
+        print(f" Loading model from: {model_path}...", flush=True)
 
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"❌ Model file not found at: {model_path}")
+            raise FileNotFoundError(f" Model file not found at: {model_path}")
         
         # Load the model into RAM (or VRAM if GPU is configured)
         self.llm = Llama(
             model_path=model_path,
-            n_ctx=2048,          # Context window
-            n_threads=6,         # CPU threads to use
-            n_gpu_layers=-1,     # -1 = Offload all to GPU (if CUDA installed)
+            n_ctx=2048,          
+            n_threads=6,        
+            n_gpu_layers=-1,     
             verbose=False        # Keep logs clean
         )
-        print("✅ Model loaded successfully.")
+        print(" Model loaded successfully.")
 
     def generate(self, prompt: str, max_tokens: int = 128, temp: float = 0.7):
         """

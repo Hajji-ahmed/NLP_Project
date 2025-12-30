@@ -3,8 +3,7 @@ import httpx
 import time
 import random
 
-# ⚠️ PASTE YOUR CURRENT KAGGLE URL HERE
-URL = "https://eb0cf532ffbd.ngrok-free.app/generate"
+URL = "https://8b95035ff852.ngrok-free.app/generate"
 API_KEY = "groupe3-secret-key-123"
 
 # A list of real prompts to test the model's logic
@@ -25,7 +24,7 @@ async def chat_interaction(i, client):
     # Pick a random prompt or use the index
     prompt = PROMPTS[i % len(PROMPTS)]
     
-    print(f"📤 [Req {i}] Sending: '{prompt}'...")
+    print(f" [Req {i}] Sending: '{prompt}'...")
     start = time.time()
     
     try:
@@ -46,20 +45,20 @@ async def chat_interaction(i, client):
             # We truncate the answer to keep the console clean-ish
             display_answer = (answer + '..') 
             
-            print(f"✅ [Req {i}] Finished in {latency:.2f}s")
-            print(f"   ↳ 🤖 Answer: {display_answer}\n")
+            print(f" [Req {i}] Finished in {latency:.2f}s")
+            print(f"   ↳ Answer: {display_answer}\n")
             return latency
         else:
-            print(f"❌ [Req {i}] Failed: {response.status_code}")
+            print(f" [Req {i}] Failed: {response.status_code}")
             return None
             
     except Exception as e:
-        print(f"⚠️ [Req {i}] Error: {e}")
+        print(f" [Req {i}] Error: {e}")
         return None
 
 async def run_demo(n=5):
-    print(f"🚀 Starting Live Chat Test on: {URL}")
-    print(f"📨 Sending {n} prompts concurrently...\n")
+    print(f"Starting Live Chat Test on: {URL}")
+    print(f"Sending {n} prompts concurrently...\n")
     
     async with httpx.AsyncClient(timeout=120.0) as client:
         # Create tasks
@@ -70,9 +69,10 @@ async def run_demo(n=5):
     valid = [r for r in results if r is not None]
     if valid:
         print("="*40)
-        print(f"📊 Average Response Time: {sum(valid)/len(valid):.2f}s")
+        print(f" Average Response Time: {sum(valid)/len(valid):.2f}s")
         print("="*40)
 
 if __name__ == "__main__":
-    # We run 5 requests so you can read the text without it being too chaotic
+
+
     asyncio.run(run_demo(n=20))

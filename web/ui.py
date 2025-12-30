@@ -1,22 +1,18 @@
 import gradio as gr
 import requests
-import os
-
-
 
 API_KEY = "groupe3-secret-key-123"
-API_URL = "https://eb0cf532ffbd.ngrok-free.app/generate"
+API_URL = "https://8b95035ff852.ngrok-free.app/generate"
 
-# In web/ui.py on your laptop
-def ask_model(text):
+def ask_model(message, history):
     try:
-        # This is REQUIRED for Ngrok
         headers = {
             "ngrok-skip-browser-warning": "true",
-             "X-API-Key": API_KEY
-            }
+            "X-API-Key": API_KEY
+        }
         
-        response = requests.post(API_URL, json={"text": text}, headers=headers)
+        # Send request to your API
+        response = requests.post(API_URL, json={"text": message}, headers=headers)
         
         if response.status_code == 200:
             return response.json()["response"]
@@ -26,12 +22,15 @@ def ask_model(text):
     except Exception as e:
         return f"❌ Connection Error: {e}"
 
-interface = gr.Interface(
+# Minimal ChatInterface configuration
+interface = gr.ChatInterface(
     fn=ask_model,
-    inputs="text",
-    outputs="text",
-    title="Qwen2.5-0.5B",
-    description="Écris un texte et le modèle répond."
+    title="🤖 Qwen2.5 Chatbot",
+    description="Ask me anything...",
+    examples=["Hello!", "Explain quantum physics", "Write a Python script"]
+    # We removed 'retry_btn', 'undo_btn', 'type', and 'theme' from here
 )
 
-interface.launch()
+if __name__ == "__main__":
+    # Theme is applied here in Gradio 6.0
+    interface.launch(theme="soft")

@@ -7,129 +7,131 @@ from pydantic import BaseModel
 from api.llm_engine import LLMEngine
 from api.security import SecurityEngine
 
-# --- 1. LOGS SETUP ---
-if not os.path.exists("logs"):
-    os.makedirs("logs")
+# --- 1. LOGGING SETUP ---
+# We use abspath to ensure logs go to the right place regardless of where you run the command
+LOG_DIR = os.path.abspath("logs")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
+# Configure logging to save ALL info to the file
 logging.basicConfig(
-    filename="logs/requests.log",
+    filename=os.path.join(LOG_DIR, "requests.log"),
     level=logging.INFO,
-    format="%(asctime)s - %(message)s"
+    format="%(asctime)s - [%(levelname)s] - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
 
 app = FastAPI(title="Secure LLM API (Full Defense)")
 
 # --- 2. CONFIGURATION ---
-# Models
+# Hardcoded Key for Workshop Stability
+API_KEY = "groupe3-secret-key-123"
+
 MAIN_MODEL_FILE = "qwen2.5-0.5b-instruct-q4_k_m.gguf"
-# Use the correct generic name if you are switching models often, or keep specific
 GUARD_MODEL_FILE = "llama-guard-3-1b-q4_k_m.gguf" 
 
-# 🔐 SECURITY CONFIGURATION (New!)
-# We fetch the key from the environment (injected by your Kaggle script)
-API_KEY = os.getenv("LLM_API_KEY")
-
-# Safety check: Prevent server from starting if no key is set
-if not API_KEY:
-    # On Kaggle, this might happen if you forget the 'env=...' line. 
-    # We set a default ONLY for debugging if needed, but better to raise error.
-    print("⚠️ WARNING: LLM_API_KEY not found! API is unprotected.")
-    API_KEY = "default-unsafe-key" 
-
-# Define the header expected: X-API-Key: your-secret
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
-# --- 3. GLOBAL INSTANCES ---
+# Global Variables
 llm_engine = None
 security_engine = None
 
+# --- 3. STARTUP EVENT ---
 @app.on_event("startup")
 async def startup_event():
     global llm_engine, security_engine
-    print("🚀 Starting Server Components...")
+    print(f" Starting Server...")
+    print(f" Logs will be saved to: {os.path.join(LOG_DIR, 'requests.log')}")
     
-    # Load Security Engine
-    security_engine = SecurityEngine(GUARD_MODEL_FILE)
-    
-    # Load Main Chat Model
-    # If you switched to Qwen 1.5 in the script, ensure this filename matches!
-    llm_engine = LLMEngine(MAIN_MODEL_FILE)
-    print("✅ Startup Complete.")
+    try:
+        security_engine = SecurityEngine(GUARD_MODEL_FILE)
+        llm_engine = LLMEngine(MAIN_MODEL_FILE)
+        print(" Startup Complete: All models loaded.")
+    except Exception as e:
+        print(f" CRITICAL ERROR during startup: {e}")
 
-# --- 4. AUTHENTICATION FUNCTION ---
+# --- 4. SECURITY CHECK (With Debugging) ---
 async def get_api_key(api_key_token: str = Security(api_key_header)):
-    """Verifies the API Key in the header."""
+    """Verifies the API Key and logs any failures."""
+    
     if api_key_token == API_KEY:
         return api_key_token
     else:
-        logging.warning(f"⛔ AUTH FAILED: Invalid Key attempted.")
-        raise HTTPException(status_code=403, detail="⛔ Access Denied: Invalid API Key")
+        #  DEBUG: Print this to the terminal to see what key was sent
+        print(f"\n DEBUG: Access Denied!")
+        print(f"   Expected Key: '{API_KEY}'")
+        print(f"   Received Key: '{api_key_token}'") # <-- Check this value in your terminal!
+        
+        logging.warning(f" AUTH FAILED: Invalid Key. Received: '{api_key_token}'")
+        raise HTTPException(status_code=403, detail=" Access Denied: Invalid API Key")
 
+# --- 5. DATA MODEL ---
 class PromptRequest(BaseModel):
     text: str
     max_new_tokens: int = 128
     temperature: float = 0.7
 
-# --- 5. THE PROTECTED ROUTE ---
-# We add 'dependencies=[Depends(get_api_key)]' to lock the door
+# --- 6. GENERATION ENDPOINT ---
 @app.post("/generate", dependencies=[Depends(get_api_key)])
 async def generate(data: PromptRequest):
     start = time.time()
     user_input = data.text
     
-    # === 🛡️ PHASE 1: INPUT FILTERING ===
-    
+    # Log that a request started
+    logging.info(f" REQUEST: '{user_input[:30]}...' (Length: {len(user_input)})")
+
     # Layer 1: Regex
     safe, msg = security_engine.check_layer_1_regex(user_input)
     if not safe:
-        logging.warning(f"BLOCKED L1: {msg}")
-        return {"response": f"⛔ {msg}", "blocked": True}
+        logging.warning(f" BLOCKED [Layer 1 Regex]: {msg}")
+        return {"response": f" {msg}", "blocked": True}
 
-    # Layer 1.5: DeBERTa (Injection)
+    # Layer 1.5: Injection
     safe, msg = security_engine.check_layer_1_5_injection(user_input)
     if not safe:
-        logging.warning(f"BLOCKED L1.5: {msg}")
-        return {"response": f"⛔ {msg}", "blocked": True}
+        logging.warning(f" BLOCKED [Layer 1.5 Injection]: {msg}")
+        return {"response": f" {msg}", "blocked": True}
 
-    # Layer 2: Llama Guard (Input)
+    # Layer 2: Llama Guard
     safe, msg = security_engine.check_layer_2_guard(user_input)
     if not safe:
-        logging.warning(f"BLOCKED L2: {msg}")
-        return {"response": f"⛔ {msg}", "blocked": True}
+        logging.warning(f" BLOCKED [Layer 2 Guard]: {msg}")
+        return {"response": f" {msg}", "blocked": True}
 
     # Layer 3: XML Escaping
     secure_prompt = security_engine.layer_3_escape(user_input)
-    
-    # === 🧠 PHASE 2: GENERATION ===
-    
-    # Construct strict system prompt
+
+    # Construct System Prompt
     final_prompt = f"""You are a helpful AI assistant.
 User input data:
 {secure_prompt}
 Respond safely to the user."""
 
-    response_text = llm_engine.generate(
-        prompt=final_prompt, 
-        max_tokens=data.max_new_tokens,
-        temp=data.temperature
-    )
+    # Generate Response
+    try:
+        response_text = llm_engine.generate(
+            prompt=final_prompt, 
+            max_tokens=data.max_new_tokens,
+            temp=data.temperature
+        )
+    except Exception as e:
+        logging.error(f" MODEL ERROR: {e}")
+        return {"response": " Internal Model Error", "blocked": False}
 
-    # === 🛡️ PHASE 3: OUTPUT FILTERING (New!) ===
-    # We check if the AI said something bad
-    # (Requires check_output method in security.py)
+    # Output Filtering
     if hasattr(security_engine, 'check_output'):
         safe_out, msg_out = security_engine.check_output(response_text, user_input)
         if not safe_out:
-            logging.warning(f"BLOCKED OUTPUT: {msg_out}")
+            logging.warning(f"🛡️ BLOCKED [Output Filter]: {msg_out}")
             return {
-                "response": "⛔ Output Blocked: The model generated content violating safety policies.", 
+                "response": "⛔ Output Blocked: Safety violation.", 
                 "latency": time.time()-start, 
                 "blocked": True
             }
 
     # === ✅ SUCCESS ===
     latency = time.time() - start
-    logging.info(f"SUCCESS: Latency {latency:.2f}s")
+    logging.info(f"✅ SUCCESS: Latency {latency:.2f}s | Response: '{response_text[:30]}...'")
     
     return {
         "response": response_text,
